@@ -290,6 +290,286 @@ The analyst can then classify activity:
 This creates a simple analytical view of process creation activity across hosts.
 
 ---
+````markdown
+## Splunk SPL Queries — Topics 12–44
+
+### 12. EventCode Frequency
+Counts how many times each EventCode appears and sorts them from highest to lowest.
+```spl
+index=main | stats count by EventCode | sort - count
+````
+
+### 13. Host-wise EventCode 4688
+
+Counts EventCode 4688 events for each host.
+
+```spl
+index=main EventCode=4688 | stats count by host | sort - count
+```
+
+### 14. Last 24 Hours
+
+Shows host-wise event counts from the last 24 hours.
+
+```spl
+index=main earliest=-24h | stats count by host | sort - count
+```
+
+### 15. EventCode 4688 — Last 24 Hours
+
+Shows host-wise EventCode 4688 activity from the last 24 hours.
+
+```spl
+index=main EventCode=4688 earliest=-24h | stats count by host | sort - count
+```
+
+### 16. Latest 10 Events
+
+Shows the newest 10 events.
+
+```spl
+index=main | sort - _time | head 10
+```
+
+### 17. Latest 10 EventCode 4688 Events
+
+Shows the latest 10 process-creation events.
+
+```spl
+index=main EventCode=4688 | sort - _time | head 10 | table _time host EventCode
+```
+
+### 18. Table
+
+Displays only selected fields.
+
+```spl
+index=main | table host source sourcetype
+```
+
+### 19. Selected Event Fields
+
+Displays time, host, EventCode, and source.
+
+```spl
+index=main | table _time host EventCode source
+```
+
+### 20. EventCode 4688 Fields
+
+Displays selected fields from EventCode 4688.
+
+```spl
+index=main EventCode=4688 | table _time host EventCode
+```
+
+### 21. Host Count with Table
+
+Counts EventCode 4688 events by host.
+
+```spl
+index=main EventCode=4688 | stats count by host | table host count
+```
+
+### 22. Source Count
+
+Counts EventCode 4688 events by source.
+
+```spl
+index=main EventCode=4688 | stats count by source | table source count
+```
+
+### 23. Sourcetype Count
+
+Counts EventCode 4688 events by sourcetype.
+
+```spl
+index=main EventCode=4688 | stats count by sourcetype | table sourcetype count
+```
+
+### 24. Where
+
+Filters results after calculating statistics.
+
+```spl
+index=main EventCode=4688 | stats count by host | where count > 50
+```
+
+### 25. Where with Total Count
+
+Checks whether total EventCode 4688 events are greater than 100.
+
+```spl
+index=main EventCode=4688 | stats count | where count > 100
+```
+
+### 26. Eval + If
+
+Creates a new status field.
+
+```spl
+index=main | stats count by host | eval status=if(count > 100,"High","Normal")
+```
+
+### 27. EventCode 4688 Classification
+
+Classifies hosts as High or Normal.
+
+```spl
+index=main EventCode=4688 | stats count by host | eval status=if(count > 50,"High","Normal")
+```
+
+### 28. Case
+
+Creates multiple severity categories.
+
+```spl
+index=main EventCode=4688 | stats count by host | eval severity=case(count >= 100,"Critical",count >= 50,"High",count >= 20,"Medium",true(),"Low")
+```
+
+### 29. Fields
+
+Keeps only selected fields.
+
+```spl
+index=main EventCode=4688 | fields _time host EventCode
+```
+
+### 30. Fieldsummary
+
+Shows information about available fields.
+
+```spl
+index=main EventCode=4688 | fieldsummary
+```
+
+### 31. Top
+
+Finds the 5 most frequent hosts.
+
+```spl
+index=main EventCode=4688 | stats count by host | top limit=5 host
+```
+
+### 32. Rare
+
+Finds the 5 least frequent hosts.
+
+```spl
+index=main EventCode=4688 | stats count by host | rare limit=5 host
+```
+
+### 33. Timechart
+
+Creates a time-based count.
+
+```spl
+index=main EventCode=4688 | timechart count
+```
+
+### 34. Timechart by Host
+
+Shows EventCode 4688 activity over time for each host.
+
+```spl
+index=main EventCode=4688 | timechart count by host
+```
+
+### 35. Bin / Span
+
+Divides events into 30-minute time buckets.
+
+```spl
+index=main EventCode=4688 | bin _time span=30m | stats count by _time
+```
+
+### 36. Eventstats
+
+Keeps original events and adds each host's total count.
+
+```spl
+index=main EventCode=4688 | eventstats count as host_count by host
+```
+
+### 37. Eventstats by Sourcetype
+
+Adds the total count for each sourcetype.
+
+```spl
+index=main EventCode=4688 | eventstats count as sourcetype_count by sourcetype
+```
+
+### 38. Lookup
+
+Adds information from an external CSV lookup table.
+
+```spl
+index=main | lookup ip_reputation.csv src_ip OUTPUT country threat
+```
+
+**SOC use:** IP reputation, threat intelligence, asset information, and department information.
+
+### 39. Join
+
+Combines two searches using a common field.
+
+```spl
+index=main EventCode=4624 | join user [ search index=main EventCode=4625 ]
+```
+
+### 40. Append
+
+Adds results of a second search below the first search.
+
+```spl
+index=main EventCode=4624 | append [ search index=main EventCode=4625 ]
+```
+
+### 41. Appendcols
+
+Combines results side-by-side as columns.
+
+```spl
+index=main EventCode=4624 | stats count as successful_logins | appendcols [ search index=main EventCode=4625 | stats count as failed_logins ]
+```
+
+### 42. Regex
+
+Filters events using a regular expression.
+
+```spl
+index=main | regex host="^WIN"
+```
+
+### 43. Spath
+
+Extracts fields from structured data such as JSON.
+
+```spl
+index=main | spath | table user src_ip action
+```
+
+For nested JSON:
+
+```spl
+index=main | spath path=network.src_ip
+```
+
+### 44. Mvexpand
+
+Expands multiple values from a multivalue field into separate rows.
+
+```spl
+index=main | mvexpand src_ip
+```
+
+```
+```
+
+
+
+
+
 
 # Skills Demonstrated
 
@@ -311,13 +591,22 @@ This creates a simple analytical view of process creation activity across hosts.
 * `rare`
 * `timechart`
 * `fieldsummary`
+* `bin`
+* `eventstats`
+* `lookup`
+* `join`
+* `append`
+* `appendcols`
+* `regex`
+* `spath`
+* `mvexpand`
 * Basic SOC investigation methodology
 
 ---
 
 # Project Outcome
 
-Through this lab, I developed practical experience using Splunk SPL to search, filter, aggregate, classify, and analyze Windows event data.
+Through this lab, I developed practical experience using Splunk SPL to search, filter, aggregate, classify, enrich, and analyze Windows event data.
 
 The project establishes a foundation for more advanced SOC detection engineering and SIEM investigation techniques, including:
 
@@ -327,9 +616,42 @@ The project establishes a foundation for more advanced SOC detection engineering
 * Suspicious process detection
 * PowerShell monitoring
 * Source IP analysis
+* Threat intelligence enrichment
+* Lookup-based investigation
 * Threshold-based alerts
+* Time-based event analysis
+* Host activity analysis
 * Dashboards
 * Correlation searches
+
+---
+
+# SPL Topics Practiced
+
+During this lab, I practiced the following SPL techniques:
+
+1. EventCode frequency analysis
+2. Host-wise event analysis
+3. Time-based searches
+4. Latest event analysis
+5. `table` and field selection
+6. `where` filtering
+7. `eval` and conditional logic
+8. `if()` conditions
+9. `case()` classification
+10. `fields`
+11. `fieldsummary`
+12. `top` and `rare`
+13. `timechart`
+14. `bin` / `span`
+15. `eventstats`
+16. `lookup`
+17. `join`
+18. `append`
+19. `appendcols`
+20. `regex`
+21. `spath`
+22. `mvexpand`
 
 ---
 
@@ -342,16 +664,27 @@ Screenshots demonstrate:
 1. Index search
 2. Event counting
 3. Host analysis
-4. EventCode 4688 analysis
-5. Latest event analysis
-6. `where` filtering
-7. `eval` classification
-8. `case()` severity classification
-9. Top host analysis
-10. Rare host analysis
-11. Time-based analysis
-12. Field selection
-13. Field summary
+4. EventCode analysis
+5. EventCode 4688 process creation analysis
+6. Latest event analysis
+7. Time-based searches
+8. `where` filtering
+9. `eval` classification
+10. `if()` conditions
+11. `case()` severity classification
+12. Top host analysis
+13. Rare host analysis
+14. Timechart analysis
+15. Field selection
+16. Field summary
+17. Time bucketing with `bin`
+18. `eventstats` analysis
+19. Lookup enrichment
+20. Search combination using `join`
+21. `append` and `appendcols`
+22. Regex filtering
+23. JSON/structured data extraction using `spath`
+24. Multivalue field expansion using `mvexpand`
 
 ---
 
@@ -359,6 +692,8 @@ Screenshots demonstrate:
 
 This project demonstrates the practical use of Splunk SPL for foundational SOC log analysis.
 
-It represents a hands-on learning lab focused on understanding how security analysts can transform raw Windows event data into structured information for investigation and monitoring.
+It represents a hands-on learning lab focused on understanding how security analysts can transform raw Windows event data into structured information for investigation, monitoring, filtering, classification, and threat analysis.
+
+The lab also provides a foundation for developing more advanced SOC detection and investigation capabilities using Splunk.
 
 **Next Phase:** Advanced Splunk SPL and SOC Detection Engineering.
